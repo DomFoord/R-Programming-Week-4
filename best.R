@@ -1,28 +1,33 @@
-
-best <- function(state,outcome){
-  data <-read.csv("outcome-of-care-measures.csv")
-  ## Read outcome data
-  statename <- as.character(data$State)
-  for(i in 1:length(statename)){
-    if (statename[i]==state)
-      break
-    if(i==length(statename))
-      stop("invalid state")
-  }
+best <- function(state, outcome){
+  ## import data
+  file <- read.csv("outcome-of-care-measures.csv", colClasses = 'character')
+  ##subset to the important data
+  outcomes <- c("hospital", "state", "heart attack", "heart failure", "pneumonia")
+  data <- as.data.frame(
+    cbind(
+      file[, 2],          # hospital
+      file[, 7],          # state
+      file[, 11],         # heart attack
+      file[, 17],         # heart failure
+      file[, 23]          # pneumonia
+    ),
+    stringsAsFactors = FALSE
+  )
+  colnames(data) <- outcomes
   
-  data <- subset.data.frame(data,State==state)
-  if(outcome=="heart attack"){
-    data <- data.frame(name=data$Hospital.Name,rate=data$Hospital.30.Day.Death..Mortality..Rates.from.Heart.Attack)
-  }else if(outcome=="heart failure"){
-    data <- data.frame(name=data$Hospital.Name,rate=data$Hospital.30.Day.Death..Mortality..Rates.from.Heart.Failure)
-  }else if(outcome=="pneumonia"){
-    data <- data.frame(name=data$Hospital.Name,rate=data$Hospital.30.Day.Death..Mortality..Rates.from.Pneumonia)
-  }else{
+  if(!state %in% data[, 'state']){
+    stop("invalid state")
+  }
+  else if(!outcome %in% c("heart attack", "heart failure", "pneumonia")){
     stop("invalid outcome")
-  }
-  ## Return hospital name in that state with lowest 30-day death
-  ## rate
-  hosname<-data$name[order(data$rate,data$name)[1]]
-  as.character(hosname)
   
+  else{
+    temp <- which(data[, "state"] == state)
+    tempd <- data[temp, ]    
+    vals <- as.numeric(tempd[, eval(outcome)])
+    min_val <- min(vals, na.rm = TRUE)
+    result  <- tempd[, "hospital"][which(vals == min_val)]
+    output  <- result[order(result)]
+  }
+  return(output)
 }
