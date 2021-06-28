@@ -20,7 +20,7 @@ best <- function(state, outcome){
   }
   else if(!outcome %in% c("heart attack", "heart failure", "pneumonia")){
     stop("invalid outcome")
-  
+  }
   else{
     temp <- which(data[, "state"] == state)
     tempd <- data[temp, ]    
